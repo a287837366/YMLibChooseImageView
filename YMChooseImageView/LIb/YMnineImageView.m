@@ -15,6 +15,7 @@
 @interface YMnineImageView()<UICollectionViewDelegate, UICollectionViewDataSource , UIAlertViewDelegate>{
     
     NSInteger clickIndex;
+    NSInteger currentCount;
     
 }
 
@@ -40,6 +41,7 @@
     
     if (self) {
         self.isshowDeleteAlert = YES;
+        self.itemHeight = ([UIScreen mainScreen].bounds.size.width) / 3 - 8;
         
         [self addSubview:self.collectionView];
     }
@@ -51,6 +53,22 @@
 
 #pragma mark - public
 -(void)reloadYMnineView{
+    
+    if (self.imageArray.count == 9) {
+        [delegate heightIsChange:(self.imageArray.count / 3) * self.itemHeight];
+    } else {
+        [delegate heightIsChange:(self.imageArray.count / 3 + 1) * self.itemHeight];
+    }
+    
+    CGRect rect = self.frame;
+    rect.size.height = (self.imageArray.count / 3 + 1) * self.itemHeight;
+    self.frame = rect;
+    
+    CGRect rectCollection = self.collectionView.frame;
+    rectCollection.size.height = (self.imageArray.count / 3 + 1) * self.itemHeight;
+    self.collectionView.frame = rectCollection;
+    
+    currentCount = self.imageArray.count;
     [self.collectionView reloadData];
 }
 
@@ -141,9 +159,8 @@
 -(void)deleteImageView:(NSInteger)tag{
     
     YMImage *currentImage = [self.imageArray objectAtIndex:tag];
-    
-    NSLog(@"  %@  ", currentImage);
-    
+    /* 如果是网路图片更改标记，如果是本地图片从数组中删除     
+     */
     if (currentImage.type == YMImageTypeWebImage) {
         currentImage.deleteType = YMImageDeleteTypeDeleteImage;
     } else {
@@ -175,12 +192,12 @@
 
     if (!_collectionView) {
         
-        _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(8, 0, Screen_Width - 16, Screen_Height - 120) collectionViewLayout:[YMnineImageFlowLayout initFlowLayout:3]];
+        _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(8, 0, Screen_Width - 16, self.itemHeight) collectionViewLayout:[YMnineImageFlowLayout initFlowLayout:3]];
        
         _collectionView.delegate = self;
         _collectionView.dataSource = self;
-
-        _collectionView.backgroundColor = [UIColor whiteColor];
+        _collectionView.backgroundColor = [UIColor clearColor];
+        
         UINib *cellNib = [UINib nibWithNibName:kYMnineImageCell bundle: [NSBundle mainBundle]];
         [_collectionView registerNib:cellNib forCellWithReuseIdentifier:kYMnineImageCell];
 

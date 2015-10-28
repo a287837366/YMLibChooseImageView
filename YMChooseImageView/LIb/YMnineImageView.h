@@ -21,27 +21,30 @@
 //添加本地图片
 -(void)addLocalImageWithUIimage:(UIImage *)image;
 
-//刷新页面
--(void)reloadYMnineView;
 
+-(void)reloadYMnineView;    //刷新页面  如果高度改变会调用 deltegate - heightIsChange:(CGFloat)
 
-//获取图片
+// [YMImageTypeWebImage]    获取网络图片
+// [YMImageTypeLocalImage]  获取本地图片
 -(NSMutableArray *)getImageListByImageType:(YMImageType)imageType;
 
 
-@property (nonatomic) BOOL isshowDeleteAlert;
+@property (nonatomic) BOOL isshowDeleteAlert;// 删除的时候需要弹出框
+
+@property (nonatomic) CGFloat itemHeight;
 
 @property (nonatomic, weak) id<YMnineIamgeViewDelegate> delegate;
 
 @end
 
 
-
-
 @protocol YMnineIamgeViewDelegate <NSObject>
 
 @optional
--(void)didClickAddButton;
+-(void)didClickAddButton;   //点击添加图片按钮
+-(void)heightIsChange:(CGFloat)height;  //改变高度
+
+
 
 @end
 
