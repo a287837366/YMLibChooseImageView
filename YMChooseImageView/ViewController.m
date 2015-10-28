@@ -47,7 +47,6 @@
 #pragma mark ymDelefate
 -(void)didClickAddButton{
     [self.ymNineView addWebImageWithUrl:@"http://img.service.uniposts.com/uploadfile/product/1510/1445508606_58489.jpg@440w_1_1o" userInfo:nil];
-    [self.ymNineView addWebImageWithUrl:@"http://img.service.uniposts.com/uploadfile/product/1510/1445508606_58489.jpg@440w_1_1o" userInfo:nil];
     [self.ymNineView reloadYMnineView];
 }
 
@@ -106,7 +105,14 @@
 }
 
 -(void)clickbtngetWeb:(UIButton *)buutton{
-    [self.ymNineView getImageListByImageType:YMImageTypeWebImage];
+    
+    for (YMImage *image in [self.ymNineView getImageListByImageType:YMImageTypeWebImage]) {
+        NSLog(@"  %@  ", image.imgUrl);
+        NSLog(@"  %ld  ", (long)image.deleteType);
+        
+    }
+
+    
 }
 
 
