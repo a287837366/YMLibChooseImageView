@@ -14,7 +14,7 @@
 
 @synthesize imageView;
 
-+(instancetype)initCell:(UICollectionView *)collectionView withIndexPath:(NSIndexPath *)indexPath withMemberArray:(UIImage *)image{
++(instancetype)initCell:(UICollectionView *)collectionView withIndexPath:(NSIndexPath *)indexPath withimage:(YMImage *)image{
 
     static NSString *identifierItem = kYMnineImageCell;
     
@@ -23,8 +23,28 @@
     if(cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:identifierItem owner:self options:nil] lastObject];
     }
+
     
-    cell.imageView.image = image;
+    if (image == nil) {
+        cell.imageView.image = [UIImage imageNamed:@"add"];
+        cell.delete_icon.hidden = YES;
+        cell.deleteButton.userInteractionEnabled = NO;
+    
+    } else {
+        
+        cell.delete_icon.hidden = NO;
+        cell.deleteButton.userInteractionEnabled = YES;
+        
+        if (image.type == YMImageTypeLocalImage) {
+            cell.imageView.image = image.image;
+        } else {
+            [cell.imageView sd_setImageWithURL:[NSURL URLWithString:image.imgUrl]];
+        }
+        
+        
+    }
+
+   
     
     return cell;
 

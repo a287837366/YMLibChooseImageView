@@ -7,13 +7,17 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "UIImageView+WebCache.h"
 
 #define kYMnineImageCell @"YMnineImageCell"
+#import "YMImage.h"
 
 @interface YMnineImageCell : UICollectionViewCell
 
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
+@property (weak, nonatomic) IBOutlet UIImageView *delete_icon;
+@property (weak, nonatomic) IBOutlet UIButton *deleteButton;
 
-+(instancetype)initCell:(UICollectionView *)initCell withIndexPath:(NSIndexPath *)indexPath withMemberArray:(UIImage *)image;
++(instancetype)initCell:(UICollectionView *)initCell withIndexPath:(NSIndexPath *)indexPath withimage:(YMImage *)image;
 
 @end

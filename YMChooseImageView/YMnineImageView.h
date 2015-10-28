@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "YMImage.h"
 
 #define Screen_Width  [[UIScreen mainScreen] bounds].size.width
 #define Screen_Height [[UIScreen mainScreen] bounds].size.height
@@ -15,26 +16,32 @@
 
 @interface YMnineImageView : UIView
 
-@property (nonatomic) NSInteger maxCount;                   //可添加最大数量 此版本固定9
-@property (nonatomic) NSInteger itemCount;                  //一行显示出来的书里那个 此版本固定3
+//添加网络图片
+-(void)addWebImageWithUrl:(NSString *)url userInfo:(NSMutableDictionary *)userInfo;
+//添加本地图片
+-(void)addLocalImageWithUIimage:(UIImage *)image;
 
-@property (nonatomic) CGFloat itemHeight;
+//刷新页面
+-(void)reloadYMnineView;
 
--(void)reloadData;
+
+//获取图片
+-(NSMutableArray *)getImageListByImageType:(YMImageType)imageType;
+
+
+@property (nonatomic) BOOL isshowDeleteAlert;
 
 @property (nonatomic, weak) id<YMnineIamgeViewDelegate> delegate;
 
 @end
 
+
+
+
 @protocol YMnineIamgeViewDelegate <NSObject>
 
-// 返回数量
--(NSInteger)ymnineImageView:(YMnineImageView *)ymnineImageView;
-// 返回Image
--(UIImage *)ymnineImageView:(YMnineImageView *)ymnineImageView index:(NSInteger)index;
-
 @optional
--(void)didReloadSuccess:(CGFloat)viewHeight;
+-(void)didClickAddButton;
 
 @end
 

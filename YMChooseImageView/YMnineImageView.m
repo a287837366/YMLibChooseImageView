@@ -12,12 +12,21 @@
 
 
 
-@interface YMnineImageView()<UICollectionViewDelegate, UICollectionViewDataSource>{
+@interface YMnineImageView()<UICollectionViewDelegate, UICollectionViewDataSource , UIAlertViewDelegate>{
+    
+    NSInteger clickIndex;
     
 }
 
 //九宫图
 @property (strong, nonatomic) UICollectionView *collectionView;
+
+//图片数组
+@property (strong, nonatomic) NSMutableArray *imageArray;
+
+@property (strong, nonatomic) NSMutableArray *localImgArray;
+
+@property (strong, nonatomic) NSMutableArray *webImageArray;
 
 @end
 
@@ -30,11 +39,7 @@
     self = [super init];
     
     if (self) {
-
-        self.maxCount = 3;
-        self.itemCount = 3;
-        
-        self.itemHeight = ([UIScreen mainScreen].bounds.size.width) / self.itemCount - 16;
+        self.isshowDeleteAlert = YES;
         
         [self addSubview:self.collectionView];
     }
@@ -42,52 +47,135 @@
     return self;
 }
 
--(void)reloadData{
-    
-    if (self.maxCount <  [delegate ymnineImageView:self]) return;
-   
-    CGRect rect = self.collectionView.frame;
-    rect.size.height = (self.itemHeight + 8) * (([delegate ymnineImageView:self] / self.itemCount) + 1);
-    
-    self.collectionView.frame = rect;
-    [self.collectionView reloadData];
 
-    [self.delegate didReloadSuccess:(self.itemHeight + 8) * (([delegate ymnineImageView:self] / self.itemCount) + 1)];
+
+#pragma mark - public
+-(void)reloadYMnineView{
+    [self.collectionView reloadData];
+}
+
+-(void)addWebImageWithUrl:(NSString *)url userInfo:(NSMutableDictionary *)userInfo{
+
+    if (self.imageArray.count == 9) return;
+
+    YMImage *image = [[YMImage alloc] initWithType:YMImageTypeWebImage];
+    image.imgUrl = url;
+    image.userInfo = userInfo;
+
+    [self.webImageArray addObject:image];
+    [self.imageArray addObject:image];
+}
+
+-(void)addLocalImageWithUIimage:(UIImage *)image{
+
+    if (self.imageArray.count == 9) return;
+  
+    YMImage *ymImage = [[YMImage alloc] initWithType:YMImageTypeLocalImage];
+    ymImage.image = image;
     
+    [self.localImgArray addObject:ymImage];
+    [self.imageArray addObject:ymImage];
+}
+
+-(NSMutableArray *)getImageListByImageType:(YMImageType)imageType{
+    
+    
+    if (imageType == YMImageTypeLocalImage) {
+        NSLog(@"YMImageTypeLocalImage %@ ", self.localImgArray);
+        return self.localImgArray;
+   
+    } else if (imageType == YMImageTypeWebImage) {
+        NSLog(@"YMImageTypeWebImage  %@ ", self.webImageArray);
+        return self.webImageArray;
+    } else {
+    
+        return nil;
+    }
 
 }
 
+
+
 #pragma mark - collocetionDelete
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
-    NSLog(@" %ld ", [delegate ymnineImageView:self]);
-    return [delegate ymnineImageView:self];
+    
+    if ([self.imageArray count] == 9) return 9;
+    
+    return [self.imageArray count] + 1;
 }
 
 //init cell
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
     
     YMnineImageCell *cell;
-    
-    if (indexPath.row == [delegate ymnineImageView:self] + 1) {
-        cell  = [YMnineImageCell initCell:collectionView withIndexPath:indexPath withMemberArray:nil];
+    if (indexPath.row == self.imageArray.count) {
+        cell  = [YMnineImageCell initCell:collectionView withIndexPath:indexPath withimage:nil];
     } else {
-        cell  = [YMnineImageCell initCell:collectionView withIndexPath:indexPath withMemberArray:[delegate ymnineImageView:self index:indexPath.row]];
+        cell  = [YMnineImageCell initCell:collectionView withIndexPath:indexPath withimage:[self.imageArray objectAtIndex:indexPath.row]];
     }
     
-
+    cell.deleteButton.tag = 100 + indexPath.row;
     
-
+    [cell.deleteButton addTarget:self action:@selector(clickDelete:) forControlEvents:UIControlEventTouchUpInside];
     
     return cell;
 }
 
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
+
+    if (indexPath.row == self.imageArray.count) [delegate didClickAddButton];
+}
+
+#pragma mark - Action
+-(void)clickDelete:(UIButton *)button{
+    
+    if (self.isshowDeleteAlert) {
+        clickIndex = button.tag - 100;
+        [self showDeleteAlert];
+        return;
+    }
+    
+    [self deleteImageView:button.tag - 100];
+    [self reloadYMnineView];
+}
+-(void)deleteImageView:(NSInteger)tag{
+    
+    YMImage *currentImage = [self.imageArray objectAtIndex:tag];
+    
+    NSLog(@"  %@  ", currentImage);
+    
+    if (currentImage.type == YMImageTypeWebImage) {
+        currentImage.deleteType = YMImageDeleteTypeDeleteImage;
+    } else {
+        [self.localImgArray removeObject:currentImage];
+    }
+    
+    [self.imageArray removeObjectAtIndex:tag];
+}
+
+#pragma mark 弹出Alert
+-(void)showDeleteAlert{
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"AlertViewTest"
+                                                    message:@"message"
+                                                   delegate:self
+                                          cancelButtonTitle:@"Cancel"
+                                          otherButtonTitles:@"OtherBtn",nil];
+    
+    [alert show];
+}
+
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+    if (buttonIndex == 0) return;
+    [self deleteImageView:clickIndex];
+    [self reloadYMnineView];
+}
 
 #pragma mark - get set
 -(UICollectionView *)collectionView{
 
     if (!_collectionView) {
         
-        _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(8, 0, Screen_Width - 16, self.itemHeight) collectionViewLayout:[YMnineImageFlowLayout initFlowLayout:3]];
+        _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(8, 0, Screen_Width - 16, Screen_Height - 120) collectionViewLayout:[YMnineImageFlowLayout initFlowLayout:3]];
        
         _collectionView.delegate = self;
         _collectionView.dataSource = self;
@@ -100,12 +188,34 @@
     
     return _collectionView;
 }
--(void)setMaxCount:(NSInteger)maxCount{
-    _maxCount = 9;
+
+-(NSMutableArray *)localImgArray{
+
+    if (!_localImgArray) {
+        _localImgArray = [[NSMutableArray alloc] init];
+    }
+    
+    return _localImgArray;
 }
 
--(void)setItemCount:(NSInteger)itemCount{
-    _itemCount = 3;
+-(NSMutableArray *)webImageArray{
+
+    if (!_webImageArray) {
+        _webImageArray = [[NSMutableArray alloc] init];
+        
+    }
+    return _webImageArray;
 }
+
+-(NSMutableArray *)imageArray{
+
+    if (!_imageArray) {
+        
+        _imageArray = [[NSMutableArray alloc] init];
+    }
+    
+    return _imageArray;
+}
+
 
 @end
